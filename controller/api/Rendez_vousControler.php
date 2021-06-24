@@ -74,5 +74,13 @@ class Rendez_vousControler{
 		
 	}
 
+	function horaire($date){
+
+		$horaire = new Mrendez_vous();
+			$horaires=$horaire->horaire($date);
+
+			echo json_encode($horaires);
+	}
+
 	
 }

@@ -2,24 +2,23 @@
     <div class="container">
         <div class="row align-items-center h-100">
             <div class="col-md-6 border mx-auto my-2 align-middle px-5 py-5 shadow rounded">
-                <h2 class="mb-5">Nouveau Render-vous</h2>
+                <h2 class="mb-5">Ajouter un Rendez-Vous</h2>
                 <form action="" >
                     Date :
                     <input type="date" name="date" v-model="date" class="form-control"><br>
+                    <div class="alert alert-danger" role="alert" v-if="erreur">
+                        {{ erreur }}
+                    </div>
                     Horaire :
                     <select name="horaire" class="form-select" v-model="horaire" >
-                        <option selected> --Horaire-- </option>
-                        <option value="10 h à 10:30h">10 h à 10:30h</option>
-                        <option value="11 h à 11:30h">11 h à 11:30h</option>
-                        <option value="14 h à 14:30h">14 h à 14:30h</option>
-                        <option value="15 h à 15:30h">15 h à 15:30h</option>
-                        <option value="16 h à 16:30h">16 h à 16:30h</option>
-                        
-                      </select><br>
+                        <option selected disabled>-- Horaire --</option>
+                        <option v-for="(duree,index) in DureesS" :key="index" :disabled="duree.etat">{{ duree.val }}</option>
+                    </select><br>
                       
                     text :
                     <textarea class="form-control" name="typeConsultation" v-model="typeConsultation" id="" cols="10" rows="5"></textarea><br>
-                <button name="submit" v-on:click.prevent="Add()" class="btn btn-primary col-md-4">Reserver</button>
+                    
+                <button name="submit" v-on:click.prevent="Add()" class="btn btn-primary col-md-4">Ajouter</button>
                 </form>
             </div>
         </div>
@@ -32,9 +31,19 @@ export default {
 data(){
 		return{
 			date:'',
-			horaire:'',
+			horaire:'-- Horaire --',
 			typeConsultation:'',
-            reference:''
+            reference:'',
+            DureesS: [
+                { val: "10 h à 10:30h", etat: false },
+                { val: "11 h à 11:30h", etat: false },
+                { val: "14 h à 14:30h", etat: false },
+                { val: "15 h à 15:30h", etat: false },
+                { val: "16 h à 16:30h", etat: false },
+                
+            ],
+            Durees: [],
+            erreur: "",
 			
 		}
 },
@@ -55,8 +64,38 @@ methods :{
 			await(this.$router.push( "/creneauxDisponibles/"+ this.$route.params.reference));
 				
 
+        },
+        async getTimes(dateP){
+           console.log("rrrrr");
+            const response= await fetch("http://localhost/www/brief_6_VueJs_API/rendez_vous/horaire/"+dateP);
+           const data = await response.json();
+           this.Durees=data;
+           console.log(data);
+
         }
-}
+},
+watch:{
+        date: async function(val){
+            await this.getTimes(val);
+            if(this.DureesS.length == this.Durees.length){
+                this.erreur="il reste plus de rdv pour cette date";
+            }
+            else{
+                 this.erreur="";
+            }
+            this.horaire="-- Horaire --";
+            for (var i = 0; i < this.DureesS.length; i++) {
+                this.DureesS[i].etat = false;
+                for (var j = 0; j < this.Durees.length; j++) {
+                    if (this.DureesS[i].val == this.Durees[j].horaire) {
+
+                        this.DureesS[i].etat = true;
+                    }
+                }
+            }
+        }
+    }
+
 }
 </script>
 
